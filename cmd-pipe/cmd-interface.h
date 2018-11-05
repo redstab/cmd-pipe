@@ -27,7 +27,7 @@ public:
 	int get_alive();
 	void endme();
 	bool alive();
-	cmd();
+	cmd(int delay, int pipe_size);
 private:
 	bool initilize_process(string path, string working_directory);
 	bool active = false;
@@ -41,6 +41,6 @@ private:
 	HANDLE STDINW;
 	HANDLE STDOUTR;
 	HANDLE STDOUTW;
-	DWORD pipe_size = 1000000;
-	DWORD sleep_delay = 10;
+	DWORD pipe_size;
+	DWORD sleep_delay;
 };

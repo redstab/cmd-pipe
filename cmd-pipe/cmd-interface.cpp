@@ -197,9 +197,10 @@ void cmd::set_custom_esc(string escape)
 	custom_esc = escape;
 }
 
-cmd::cmd()
+cmd::cmd(int delay, int pipe_size)
 {
-	
+	set_delay(delay);
+	set_pipe_size(pipe_size);
 }
 
 void cmd::nircmd(string command)

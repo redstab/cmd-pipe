@@ -9,7 +9,7 @@ using namespace std;
 
 int main()
 {
-	cmd command_prompt;
+	cmd command_prompt(10, 1000000);
 	command_prompt.initilize_custom("C:\\Users\\legit.kms\\source\\repos\\cmd-pipe\\Release\\nc.exe", "C:\\Users\\legit.kms\\source\\repos\\cmd-pipe\\Release", ": ", true);
 	while (command_prompt.alive()) {
 		string command;
