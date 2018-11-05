@@ -72,6 +72,8 @@ bool cmd::read_cmd(string command = "", int length = 0)
 
 			string output = output_cmd;
 
+			delete output_cmd; // unless delete the output_cmd would get to >400mb of memory
+
 			auto command_index = 0;
 
 			for (; command_index < length; command_index++) { if (output[command_index] == command[command_index]) { continue; } else { break; } }
@@ -86,7 +88,12 @@ bool cmd::read_cmd(string command = "", int length = 0)
 
 			bool end_cst = (last2chars == custom_esc);
 
-			if (end_cmd || end_ps || end_cst) break;
+			if (end_cmd || end_ps || end_cst) {
+				
+				//free(output_cmd);
+				//output_cmd = NULL;
+				break;
+			}
 		}
 		else if (get_alive() != 259 || force_quit) {
 			break;
@@ -160,6 +167,7 @@ void cmd::initilize_nirsoft()
 
 void cmd::initilize_custom(string path, string working_directory, string esc, bool output)
 {
+	cmd::terminate_open();
 	set_custom_esc(esc);
 	cmd::initilize_process(path, working_directory);
 	(output) ? cmd::read_cmd() : false;
@@ -167,6 +175,7 @@ void cmd::initilize_custom(string path, string working_directory, string esc, bo
 
 void cmd::initilize_cmd(bool output = true)
 {
+	cmd::terminate_open();
 	cmd::initilize_process("C:\\Windows\\System32\\cmd.exe");
 	(output) ? cmd::read_cmd() : false;
 }
@@ -174,6 +183,7 @@ void cmd::initilize_cmd(bool output = true)
 
 void cmd::initilize_ps(bool output = true)
 {
+	cmd::terminate_open();
 	cmd::initilize_process("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe");
 	(output) ? cmd::read_cmd() : false;
 }
@@ -181,6 +191,14 @@ void cmd::initilize_ps(bool output = true)
 void cmd::Sömn()
 {
 	Sleep(sleep_delay);
+}
+
+void cmd::terminate_open()
+{
+	if (process_info.hProcess == NULL) {
+		TerminateProcess(process_info.hProcess, 0);
+		CloseHandle(process_info.hProcess);
+	}
 }
 
 void cmd::set_delay(int delay)
@@ -211,10 +229,17 @@ void cmd::nircmd(string command)
 
 void cmd::command(string command)
 {
-	if (nirsoft) { nircmd(command); }
-	int command_size;
-	cmd::write_cmd(command.c_str(), command_size);
-	cmd::read_cmd(command.c_str(), command_size);
+	if (nirsoft) {
+		nircmd(command); 
+	}
+	else {
+		int command_size;
+
+		cmd::write_cmd(command.c_str(), command_size);
+
+		cmd::read_cmd(command.c_str(), command_size);
+	}
+
 	return;
 }
 
@@ -237,5 +262,5 @@ void cmd::endme()
 
 bool cmd::alive()
 {
-	return active;
+	return (active && get_alive());
 }

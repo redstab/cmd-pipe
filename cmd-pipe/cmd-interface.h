@@ -15,6 +15,7 @@ class cmd {
 
 public:
 	void Sömn();
+	void terminate_open();
 	void set_delay(int delay);
 	void set_pipe_size(int size);
 	void set_custom_esc(string escape);
