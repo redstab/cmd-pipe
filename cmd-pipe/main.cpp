@@ -10,11 +10,12 @@ using namespace std;
 int main()
 {
 	cmd command_prompt;
+	command_prompt.initilize_custom("C:\\Users\\legit.kms\\source\\repos\\cmd-pipe\\Release\\nc.exe", "C:\\Users\\legit.kms\\source\\repos\\cmd-pipe\\Release", ": ", true);
 	while (command_prompt.alive()) {
 		string command;
 		getline(cin, command);
+		cout << command << endl;
 		command_prompt.command(command);
 		command_prompt.endme();
 	}
-	cin.get();
 }

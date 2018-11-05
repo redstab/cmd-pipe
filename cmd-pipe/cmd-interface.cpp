@@ -47,7 +47,7 @@ bool cmd::write_cmd(CString command, int &length)
 	return true;
 }
 
-bool cmd::read_cmd(string command, int length)
+bool cmd::read_cmd(string command = "", int length = 0)
 {
 	while (true)
 	{
@@ -84,10 +84,67 @@ bool cmd::read_cmd(string command, int length)
 
 			bool end_ps = (last2chars == "> ");
 
-			if (end_cmd || end_ps) break;
+			bool end_cst = (last2chars == custom_esc);
+
+			if (end_cmd || end_ps || end_cst) break;
+		}
+		else if (get_alive() != 259 || force_quit) {
+			break;
 		}
 	}
 	return 0;
+}
+
+bool cmd::initilize_process(string path, string working_directory = "C:\\Windows" )
+{
+	security_atrib = {
+	sizeof(SECURITY_ATTRIBUTES),
+	NULL,
+	true
+	};
+
+	bool STDIN_PIPE = CreatePipe(&STDINR, &STDINW, &security_atrib, pipe_size);
+
+	bool STDOUT_PIPE = CreatePipe(&STDOUTR, &STDOUTW, &security_atrib, pipe_size);
+
+	if (!(STDIN_PIPE || STDOUT_PIPE)) {
+		cout << "ERROR: Cannot create pipe" << endl;
+	}
+
+	GetStartupInfoA(&startup_info);
+
+	startup_info.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+
+	startup_info.wShowWindow = SW_HIDE;
+
+	startup_info.hStdOutput = STDOUTW;
+
+	startup_info.hStdError = STDOUTW;
+
+	startup_info.hStdInput = STDINR;
+
+	bool CREATE_PROCESS = CreateProcessA(
+		path.c_str(),
+		NULL,
+		NULL,
+		NULL,
+		TRUE,
+		0,
+		NULL,
+		working_directory.c_str(),
+		&startup_info,
+		&process_info
+	);
+
+	if (!CREATE_PROCESS) {
+		cout << "[ERROR: Cannot create process]" << endl;
+		return false;
+	}
+	else {
+		cout << "[SUCESS: Created process (" << process_info.hProcess << "|\"" << path << "\")]" << endl;
+		active = true;
+		return true;
+	}
 }
 
 void cmd::initilize_nirsoft()
@@ -96,6 +153,28 @@ void cmd::initilize_nirsoft()
 	HANDLE hLibrary = 0;
 	hLibrary = lib.LoadFromMemory(nircmd_dll, sizeof(nircmd_dll));
 	nirsofter = (cmd_type)lib.GetProcAddressFromMemory(hLibrary, "DoNirCmd");
+}
+
+void cmd::initilize_custom(string path, string working_directory, string esc, bool output)
+{
+	set_custom_esc(esc);
+	cmd::initilize_process(path, working_directory);
+	(output) ? cmd::read_cmd() : false;
+}
+
+void cmd::initilize_cmd(bool output = true)
+{
+	cmd::initilize_process("C:\\Windows\\System32\\cmd.exe", "C:\\Windows");
+	cmd::read_cmd();
+	(output) ? cmd::read_cmd() : false;
+}
+
+
+void cmd::initilize_ps(bool output = true)
+{
+	cmd::initilize_process("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "C:\\Windows");
+	cmd::read_cmd();
+	(output) ? cmd::read_cmd() : false;
 }
 
 void cmd::Sömn()
@@ -113,55 +192,14 @@ void cmd::set_pipe_size(int size)
 	pipe_size = size;
 }
 
-cmd::cmd(void)
+void cmd::set_custom_esc(string escape)
 {
-	security_atrib = {
-		sizeof(SECURITY_ATTRIBUTES),
-		NULL,
-		true
-	};
+	custom_esc = escape;
+}
 
-	bool STDIN_PIPE = CreatePipe(&STDINR, &STDINW, &security_atrib, pipe_size);
-
-	bool STDOUT_PIPE = CreatePipe(&STDOUTR, &STDOUTW, &security_atrib, pipe_size);
-
-	if (!(STDIN_PIPE || STDOUT_PIPE)) {
-		cout << "ERROR: Cannot create pipe" << endl;
-	}
-
-	GetStartupInfo(&startup_info);
-
-	startup_info.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-
-	startup_info.wShowWindow = SW_HIDE;
-
-	startup_info.hStdOutput = STDOUTW;
-
-	startup_info.hStdError = STDOUTW;
-
-	startup_info.hStdInput = STDINR;
-
-	bool CREATE_PROCESS = CreateProcess(
-		TEXT("C:\\Windows\\System32\\cmd.exe"),
-		NULL,
-		NULL,
-		NULL,
-		TRUE,
-		0,
-		NULL,
-		TEXT("C:\\Windows"),
-		&startup_info,
-		&process_info
-	);
-
-	if (!CREATE_PROCESS) {
-		cout << "[ERROR: Cannot create process]" << endl;
-	}
-	else {
-		cout << "[SUCESS: Created Command Prompt]" << endl;
-		active = true;
-	}
-	cmd::read_cmd("", 0);
+cmd::cmd()
+{
+	
 }
 
 void cmd::nircmd(string command)
@@ -175,6 +213,13 @@ void cmd::command(string command)
 	cmd::write_cmd(command.c_str(), command_size);
 	cmd::read_cmd(command.c_str(), command_size);
 	return;
+}
+
+int cmd::get_alive()
+{
+	DWORD return_val;
+	GetExitCodeProcess(process_info.hProcess, &return_val);
+	return return_val;
 }
 
 void cmd::endme()
