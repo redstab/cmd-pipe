@@ -23,7 +23,6 @@ public:
 	void endme();
 	bool alive();
 	cmd();
-	~cmd();
 private:
 	bool active = false;
 	STARTUPINFO startup_info;

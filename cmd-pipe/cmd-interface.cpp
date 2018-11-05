@@ -164,13 +164,6 @@ cmd::cmd(void)
 	cmd::read_cmd("", 0);
 }
 
-cmd::~cmd()
-{
-	active = false;
-	TerminateProcess(process_info.hProcess, 0);
-	CloseHandle(process_info.hProcess);
-}
-
 void cmd::nircmd(string command)
 {
 	nirsofter((LPSTR)command.c_str());
@@ -186,8 +179,10 @@ void cmd::command(string command)
 
 void cmd::endme()
 {
-	cmd::~cmd();
-	cout << endl << "[SUCCESS: cmd commited !alive]" << endl;
+	active = false;
+	TerminateProcess(process_info.hProcess, 0);
+	CloseHandle(process_info.hProcess);
+	cout << endl << "[SUCCESS: (" << process_info.hProcess <<  ") commited !alive]" << endl;
 }
 
 bool cmd::alive()
