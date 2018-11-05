@@ -11,7 +11,7 @@ int main()
 	//command_prompt.initilize_custom("C:\\Users\\legit.kms\\source\\repos\\cmd-pipe\\Release\\nc.exe", "C:\\Users\\legit.kms\\source\\repos\\cmd-pipe\\Release", ": ", true);
 	//command_prompt.initilize_ps(true);
 	command_prompt.initilize_nirsoft();
-	//command_prompt.initilize_cmd(true);----------------------------------------------------------------------------------------------------
+	//command_prompt.initilize_cmd(true);
 	while (command_prompt.alive()) {
 		string command;
 		getline(cin, command);
