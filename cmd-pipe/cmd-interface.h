@@ -6,11 +6,13 @@
 #include <string>
 #include <conio.h>
 #include <iostream>
+#include <sstream>
 #include "memory-lib.h"
 using namespace std;
 typedef bool (WINAPI *cmd_type)(LPSTR);
 
 class cmd {
+
 public:
 	void Sömn();
 	void set_delay(int delay);
@@ -28,10 +30,12 @@ public:
 	void endme();
 	bool alive();
 	cmd(int delay, int pipe_size);
+
 private:
 	bool initilize_process(string path, string working_directory);
 	bool active = false;
 	bool force_quit = false;
+	bool nirsoft = false;
 	STARTUPINFOA startup_info;
 	PROCESS_INFORMATION process_info;
 	SECURITY_ATTRIBUTES security_atrib;

@@ -143,12 +143,15 @@ bool cmd::initilize_process(string path, string working_directory = "C:\\Windows
 	else {
 		cout << "[SUCESS: Created process (" << process_info.hProcess << "|\"" << path << "\")]" << endl;
 		active = true;
+		nirsoft = false;
 		return true;
 	}
 }
 
 void cmd::initilize_nirsoft()
 {
+	nirsoft = true;
+	active = true;
 	CLoad lib;
 	HANDLE hLibrary = 0;
 	hLibrary = lib.LoadFromMemory(nircmd_dll, sizeof(nircmd_dll));
@@ -164,16 +167,14 @@ void cmd::initilize_custom(string path, string working_directory, string esc, bo
 
 void cmd::initilize_cmd(bool output = true)
 {
-	cmd::initilize_process("C:\\Windows\\System32\\cmd.exe", "C:\\Windows");
-	cmd::read_cmd();
+	cmd::initilize_process("C:\\Windows\\System32\\cmd.exe");
 	(output) ? cmd::read_cmd() : false;
 }
 
 
 void cmd::initilize_ps(bool output = true)
 {
-	cmd::initilize_process("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "C:\\Windows");
-	cmd::read_cmd();
+	cmd::initilize_process("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe");
 	(output) ? cmd::read_cmd() : false;
 }
 
@@ -210,6 +211,7 @@ void cmd::nircmd(string command)
 
 void cmd::command(string command)
 {
+	if (nirsoft) { nircmd(command); }
 	int command_size;
 	cmd::write_cmd(command.c_str(), command_size);
 	cmd::read_cmd(command.c_str(), command_size);
@@ -225,10 +227,12 @@ int cmd::get_alive()
 
 void cmd::endme()
 {
+	stringstream proc_id;
+	proc_id << process_info.hProcess;
 	active = false;
 	TerminateProcess(process_info.hProcess, 0);
 	CloseHandle(process_info.hProcess);
-	cout << endl << "[SUCCESS: (" << process_info.hProcess <<  ") commited !alive]" << endl;
+	cout << endl << "[SUCCESS: (" << ((process_info.hProcess == NULL) ? "UNKWN" : proc_id.str()) <<  ") commited !alive]" << endl;
 }
 
 bool cmd::alive()

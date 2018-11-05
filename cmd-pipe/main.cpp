@@ -1,6 +1,3 @@
-#include <iostream>
-#include <Windows.h>
-#include <string>
 #include "cmd-interface.h"
 using namespace std;
 
@@ -10,11 +7,13 @@ using namespace std;
 int main()
 {
 	cmd command_prompt(10, 1000000);
-	command_prompt.initilize_custom("C:\\Users\\legit.kms\\source\\repos\\cmd-pipe\\Release\\nc.exe", "C:\\Users\\legit.kms\\source\\repos\\cmd-pipe\\Release", ": ", true);
+	//command_prompt.initilize_custom("C:\\Users\\legit.kms\\source\\repos\\cmd-pipe\\Release\\nc.exe", "C:\\Users\\legit.kms\\source\\repos\\cmd-pipe\\Release", ": ", true);
+	//command_prompt.initilize_ps(true);
+	//command_prompt.initilize_nirsoft();
+	command_prompt.initilize_cmd(true);
 	while (command_prompt.alive()) {
 		string command;
 		getline(cin, command);
-		cout << command << endl;
 		command_prompt.command(command);
 		command_prompt.endme();
 	}
