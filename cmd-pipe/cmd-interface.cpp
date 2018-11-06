@@ -35,7 +35,7 @@ bool cmd::write_cmd(CString command, int &length)
 		NULL
 	);
 
-	length = string((command_ansi != NULL) ? command_ansi : "NULL").length();
+	length = int(string((command_ansi != NULL) ? command_ansi : "NULL").length());
 
 	WriteFILE = WriteFile(STDINW, command_ansi, size - 1, &NUM_OF_BYTES, NULL);
 
@@ -72,7 +72,7 @@ bool cmd::read_cmd(string command = "", int length = 0)
 
 			string output = output_cmd;
 
-			delete output_cmd; // unless delete the output_cmd would get to >400mb of memory
+			delete[] output_cmd; // unless delete the output_cmd would get to >400mb of memory
 
 			auto command_index = 0;
 
@@ -95,7 +95,7 @@ bool cmd::read_cmd(string command = "", int length = 0)
 				break;
 			}
 		}
-		else if (get_alive() != 259 || force_quit) {
+		else if (!get_alive() || force_quit) {
 			break;
 		}
 	}
@@ -173,7 +173,7 @@ void cmd::initilize_custom(string path, string working_directory, string esc, bo
 	(output) ? cmd::read_cmd() : false;
 }
 
-void cmd::initilize_cmd(bool output = true)
+void cmd::initilize_cmd(bool output)
 {
 	cmd::terminate_open();
 	cmd::initilize_process("C:\\Windows\\System32\\cmd.exe");
@@ -181,7 +181,7 @@ void cmd::initilize_cmd(bool output = true)
 }
 
 
-void cmd::initilize_ps(bool output = true)
+void cmd::initilize_ps(bool output)
 {
 	cmd::terminate_open();
 	cmd::initilize_process("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe");
@@ -216,10 +216,23 @@ void cmd::set_custom_esc(string escape)
 	custom_esc = escape;
 }
 
-cmd::cmd(int delay, int pipe_size)
+cmd::cmd(prompt type, bool output, int delay, int pipe_size)
 {
 	set_delay(delay);
 	set_pipe_size(pipe_size);
+	switch (type) {
+	case CommandPrompt:
+		initilize_cmd(output);
+		break;
+	case PowerShell:
+	{
+		initilize_ps(output);
+		break;
+	}
+	default:
+		cout << "syntax: specified invalid enum type" << endl;
+		break;
+	}
 }
 
 void cmd::nircmd(string command)
@@ -232,6 +245,9 @@ void cmd::command(string command)
 	if (nirsoft) {
 		nircmd(command); 
 	}
+	else if (command == "exit") {
+		cmd::endme();
+	}
 	else {
 		int command_size;
 
@@ -243,11 +259,16 @@ void cmd::command(string command)
 	return;
 }
 
-int cmd::get_alive()
+bool cmd::get_alive()
 {
 	DWORD return_val;
 	GetExitCodeProcess(process_info.hProcess, &return_val);
-	return return_val;
+	if (return_val == 259) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 void cmd::endme()
@@ -262,5 +283,14 @@ void cmd::endme()
 
 bool cmd::alive()
 {
-	return (active && get_alive());
+	DWORD return_val;
+	GetExitCodeProcess(process_info.hProcess, &return_val);
+	bool exitcode = (return_val == 259);
+	if (exitcode && active) {
+		return true;
+	}
+	else {
+		return false;
+	}
+	
 }

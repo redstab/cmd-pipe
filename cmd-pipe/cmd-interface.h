@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 #include <Windows.h>
 #include <stdio.h>
 #include <atlstr.h>
@@ -10,6 +9,7 @@
 #include "memory-lib.h"
 using namespace std;
 typedef bool (WINAPI *cmd_type)(LPSTR);
+enum prompt {CommandPrompt, PowerShell, None};
 
 class cmd {
 
@@ -22,15 +22,16 @@ public:
 	bool write_cmd(CString command, int &length);
 	bool read_cmd(string command, int length);
 	void initilize_nirsoft();
-	void initilize_custom(string path, string working_directory, string esc, bool output);
-	void initilize_cmd(bool output);
-	void initilize_ps(bool output);
+	void initilize_custom(string path, string working_directory, string esc, bool output = true);
+	void initilize_cmd(bool output = true);
+	void initilize_ps(bool output = true);
 	void nircmd(string command);
 	void command(string command);
-	int get_alive();
+	bool get_alive();
 	void endme();
 	bool alive();
-	cmd(int delay, int pipe_size);
+	
+	cmd(prompt type = None, bool output = true, int delay = 10, int pipe_size = 1000000);
 
 private:
 	bool initilize_process(string path, string working_directory);
