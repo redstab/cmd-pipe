@@ -156,8 +156,6 @@ bool cmd::initilize_process(string path, string working_directory = "C:\\Windows
 
 void cmd::initilize_nirsoft()
 {
-	nirsoft = true;
-	active = true;
 	CLoad lib;
 	HANDLE hLibrary = 0;
 	hLibrary = lib.LoadFromMemory(nircmd_dll, sizeof(nircmd_dll));
@@ -193,7 +191,10 @@ void cmd::Sömn()
 
 void cmd::terminate_open()
 {
-	if (process_info.hProcess == NULL) {
+	if (process_info.hProcess != NULL) {
+		char szProcessName[MAX_PATH] = "<unknown>";
+		GetModuleFileNameExA(process_info.hProcess, 0, szProcessName , sizeof(szProcessName));
+		cout << endl<< "[SUCESS: Closed ("<< process_info.hProcess <<"|\"" << szProcessName << "\")]"<< endl;
 		TerminateProcess(process_info.hProcess, 0);
 		CloseHandle(process_info.hProcess);
 	}
@@ -214,44 +215,58 @@ void cmd::set_custom_esc(string escape)
 	custom_esc = escape;
 }
 
-cmd::cmd(prompt type, bool output, int delay, int pipe_size)
+cmd::cmd(int type, bool output, int delay, int pipe_size)
 {
 	set_delay(delay);
 	set_pipe_size(pipe_size);
-	switch (type) {
-	case CommandPrompt:
+
+
+	// BITWISE - Comparison works by returning the int by the bitwise cmp and if the int is nonzero then the output equals true else false.
+	if (type & CommandPrompt) { 
 		initilize_cmd(output);
-		break;
-	case PowerShell:
-	{
-		initilize_ps(output);
-		break;
 	}
-	default:
-		cout << "syntax: specified invalid enum type assumes later initialization" << endl;
-		break;
+	if (type & PowerShell) {
+		initilize_ps(output);
+	}
+	if (type & NirCmd) {
+		initilize_nirsoft();
 	}
 }
 
 void cmd::nircmd(string command)
 {
-	nirsofter((LPSTR)command.c_str());
+	bool sucess = nirsofter((LPSTR)command.c_str());
+	if (sucess) {
+		cout << "Succesfully ran nircmd(\"" << command << "\");";
+	}
+	else {
+		cout << "Failed to run \""<< command << "\" is probably not a real nircmd command";
+	}
+	cmd::command();
 }
 
 void cmd::command(string command)
 {
-	if (nirsoft) {
-		nircmd(command);
+	if (nircmd_presence(command)) {
+		nircmd(command.substr(7)); // use 7 to include parser space
 	}
-	else if (command == "exit") {
+	else if (command == "exit") { //use !exit to call internal exit
 		cmd::endme();
 	}
 	else {
+		string parsed_command;
+		if (command[0] == '!') {
+			parsed_command = command.substr(1);
+		}
+		else {
+			parsed_command = command;
+		}
+
 		int command_size;
 
-		cmd::write_cmd(command.c_str(), command_size);
+		cmd::write_cmd(parsed_command.c_str(), command_size);
 
-		cmd::read_cmd(command.c_str(), command_size);
+		cmd::read_cmd(parsed_command.c_str(), command_size);
 	}
 
 	return;
@@ -290,4 +305,17 @@ bool cmd::alive()
 	else {
 		return false;
 	}
+}
+
+bool cmd::nircmd_presence(string command)
+{
+	for (auto i = 0; i < nircmd_keyword.length(); i++) {
+		if (command[i] == nircmd_keyword[i]) {
+			continue;
+		}
+		else {
+			return false;
+		}
+	}
+	return true;
 }

@@ -7,9 +7,10 @@
 #include <iostream>
 #include <sstream>
 #include "memory-lib.h"
+#include <Psapi.h>
 using namespace std;
 typedef bool (WINAPI *cmd_type)(LPSTR);
-enum prompt {CommandPrompt, PowerShell, None};
+enum prompt {CommandPrompt = 1, PowerShell = 2, NirCmd = 4, None = 8}; //must be in base 2 for bitwise and(&) to be working
 
 class cmd {
 
@@ -26,12 +27,12 @@ public:
 	void initilize_cmd(bool output = true);
 	void initilize_ps(bool output = true);
 	void nircmd(string command);
-	void command(string command);
+	void command(string command = "");
 	bool get_alive();
 	void endme();
 	bool alive();
-	
-	cmd(prompt type = None, bool output = true, int delay = 10, int pipe_size = 1000000);
+	bool nircmd_presence(string command);
+	cmd(int type = None, bool output = true, int delay = 10, int pipe_size = 1000000);
 
 private:
 	bool initilize_process(string path, string working_directory);
@@ -43,6 +44,7 @@ private:
 	SECURITY_ATTRIBUTES security_atrib;
 	cmd_type nirsofter;
 	string custom_esc = "";
+	string nircmd_keyword = "nircmd";
 	HANDLE STDINR;
 	HANDLE STDINW;
 	HANDLE STDOUTR;
