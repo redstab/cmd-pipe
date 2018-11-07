@@ -89,7 +89,6 @@ bool cmd::read_cmd(string command = "", int length = 0)
 			bool end_cst = (last2chars == custom_esc);
 
 			if (end_cmd || end_ps || end_cst) {
-				
 				//free(output_cmd);
 				//output_cmd = NULL;
 				break;
@@ -102,7 +101,7 @@ bool cmd::read_cmd(string command = "", int length = 0)
 	return 0;
 }
 
-bool cmd::initilize_process(string path, string working_directory = "C:\\Windows" )
+bool cmd::initilize_process(string path, string working_directory = "C:\\Windows")
 {
 	security_atrib = {
 	sizeof(SECURITY_ATTRIBUTES),
@@ -180,7 +179,6 @@ void cmd::initilize_cmd(bool output)
 	(output) ? cmd::read_cmd() : false;
 }
 
-
 void cmd::initilize_ps(bool output)
 {
 	cmd::terminate_open();
@@ -230,7 +228,7 @@ cmd::cmd(prompt type, bool output, int delay, int pipe_size)
 		break;
 	}
 	default:
-		cout << "syntax: specified invalid enum type" << endl;
+		cout << "syntax: specified invalid enum type assumes later initialization" << endl;
 		break;
 	}
 }
@@ -243,7 +241,7 @@ void cmd::nircmd(string command)
 void cmd::command(string command)
 {
 	if (nirsoft) {
-		nircmd(command); 
+		nircmd(command);
 	}
 	else if (command == "exit") {
 		cmd::endme();
@@ -278,7 +276,7 @@ void cmd::endme()
 	active = false;
 	TerminateProcess(process_info.hProcess, 0);
 	CloseHandle(process_info.hProcess);
-	cout << endl << "[SUCCESS: (" << ((process_info.hProcess == NULL) ? "UNKWN" : proc_id.str()) <<  ") commited !alive]" << endl;
+	cout << endl << "[SUCCESS: (" << ((process_info.hProcess == NULL) ? "UNKWN" : proc_id.str()) << ") commited !alive]" << endl;
 }
 
 bool cmd::alive()
@@ -292,5 +290,4 @@ bool cmd::alive()
 	else {
 		return false;
 	}
-	
 }
