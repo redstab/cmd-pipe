@@ -1,5 +1,4 @@
 #include "cmd-interface.h"
-#include <bitset>
 using namespace std;
 
 //					Inspiration:
