@@ -6,3 +6,6 @@
 #include <string>
 #include <sstream>
 #include "Shlobj.h"
+#include <tuple>
+#include <stdexcept>
+#include <vector>
