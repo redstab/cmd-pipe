@@ -18,21 +18,9 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="memory-lib.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cmd-interface.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cmd-interface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="memory-lib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="nirsoft-cmd.h">
+    <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
