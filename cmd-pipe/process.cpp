@@ -41,8 +41,7 @@ bool console_process::open()
 	startup_info.hStdError = output_write;
 	startup_info.hStdInput = input_read;
 
-
-	return CreateProcessA(process_properties.console_application.c_str(), 0, 0, 0, process_properties.inherit_handle, process_properties.console_flags, 0, process_properties.working_directory.c_str(), &startup_info, &process_info);
+	return CreateProcessA(process_properties.console_application.c_str(), nullptr, 0, 0, process_properties.inherit_handle, process_properties.console_flags, 0, process_properties.working_directory.c_str(), &startup_info, &process_info);
 }
 
 bool console_process::close()
@@ -52,88 +51,63 @@ bool console_process::close()
 
 bool console_process::write(std::string input)
 {
+	input += '\n';
 	DWORD bytes_written;
-	return WriteFile(input_write, input.c_str(), DWORD(input.length() + 1), &bytes_written, 0);
+	return WriteFile(input_write, input.c_str(), input.length() + 1, &bytes_written, nullptr);
 }
 
-buffer_result console_process::read(std::queue<std::string>& input)
+void console_process::read_console(std::function<void(std::string)> output_handler)
 {
-	// Check if we can write to input
-	
-	// Peak at buffer for data
-	
-	DWORD bytes_available;
 
-	if (PeekNamedPipe(output_read, 0, 0, 0, &bytes_available, 0)) {
-		if (bytes_available != 0) { // if buffer does not equal 0
+	// Capture Command Output
+
+	do {
+
+		unsigned long bytes_available;
+		
+		if (PeekNamedPipe(output_read, nullptr, 0, nullptr, &bytes_available, nullptr)) {
+			if (bytes_available != 0) {
 			
-			DWORD read;
+				DWORD read{};
 
-			char* output = new char[unsigned long(bytes_available) + (unsigned long(1))] {'\0'};
-			if (ReadFile(output_read, output, bytes_available, &read, 0)) {
+				std::vector<char> output(bytes_available);
 
-				if (read == bytes_available) {
-					output[bytes_available] = '\0';
-					std::string out(output);
-					delete[] output;
-					input.push(out);
-					return ((WaitForSingleObject(input_read, process_properties.timeout) == WAIT_OBJECT_0) ?  more_data : buffer_empty);
+				if (ReadFile(output_read, &output.at(0), bytes_available, &read, nullptr)) {
+
+					if (read == bytes_available) {
+						std::string out(output.begin(), output.end());
+						output_handler(out);
+					}
+
 				}
-
 			}
-			delete[] output;
+
 		}
-
-	}
-	return more_data;
-	//bool done = false;
-
-	//while (!done) {
-	//	done = ((WaitForSingleObject(input_read, 50) != WAIT_OBJECT_0));
-
-	//	DWORD bytes;
-
-	//	if (!PeekNamedPipe(output_read, 0, 0, 0, &bytes, 0)) {
-	//		
-	//	}
-	//	else {
-	//		if (bytes != 0) {
-
-	//			char* output = new char[bytes] {'\0'};
-
-	//			DWORD read;
-
-	//			if (!ReadFile(output_read, output, bytes, &read, 0)) {
-	//				
-	//			}
-	//			else {
-
-	//				if (read == bytes) {
-
-	//					std::string out(output);
-	//					for (auto chr : out.substr(0, read)) {
-	//						std::cout << chr;
-	//					}
-
-	//				}
-	//				else {
-	//					
-	//				}
-
-	//			}
-
-	//			delete[] output;
-
-	//		}
-	//		else {
-	//			
-	//		}
-	//	}
-	//}
-
-	//return { "", buffer_empty };
+	
+	} while (WaitForSingleObject(input_read, process_properties.timeout) == WAIT_OBJECT_0);
 
 }
+
+void console_process::read(std::function<void(std::string)> output_handler)
+{
+	// Read command output
+
+	read_console(output_handler);
+
+	// Read path
+
+	read_console(output_handler);
+
+}
+
+void console_process::execute(std::string command, std::function<void(std::string)> output_handler)
+{
+	write(command);
+	read(output_handler);
+}
+
+
+
 
 bool console_process::open_pipe(HANDLE& read, HANDLE& write)
 {

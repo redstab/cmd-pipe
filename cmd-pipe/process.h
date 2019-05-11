@@ -29,7 +29,10 @@ public:
 	bool open();
 	bool close();
 	bool write(std::string);
-	buffer_result read(std::queue<std::string>&);
+	
+	void read(std::function<void(std::string)>);
+
+	void execute(std::string, std::function<void(std::string)>);
 
 private:
 	
@@ -48,5 +51,6 @@ private:
 
 	bool open_pipe(HANDLE&, HANDLE&);
 
+	void read_console(std::function<void(std::string)>);
 
 };

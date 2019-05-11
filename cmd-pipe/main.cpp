@@ -12,27 +12,6 @@ int main()
 	console_process cmd(prop);
 
 	cmd.open();
-
-	std::queue<std::string> shs;
-
-	while (cmd.read(shs)) {
-		if (!shs.empty()) {
-			std::cout << shs.front();
-			shs.pop();
-		}
-	}
-
-	cmd.write("ping google.com\n");//ping google.com /n 5
-
-	std::queue<std::string> ss;
-
-	while (cmd.read(ss)) {
-		if (!ss.empty()) {
-			std::cout << ss.front();
-			ss.pop();
-		}
-	}
-	std::cout << "done" << std::endl;
-
-	std::cin.get();
+	
+	cmd.execute("dir", [&](std::string s) {std::cout << s; });
 }

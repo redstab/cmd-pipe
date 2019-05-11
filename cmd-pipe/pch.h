@@ -10,3 +10,5 @@
 #include <stdexcept>
 #include <vector>
 #include <queue>
+#include <functional>
+#include <memory>
