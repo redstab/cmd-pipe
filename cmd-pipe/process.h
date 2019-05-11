@@ -1,6 +1,11 @@
 #pragma once
 #include "pch.h"
 
+struct run_once {
+	template <typename T>
+	run_once(T&& f) { f(); }
+};
+
 struct console_properties {
 	std::string console_application;
 	std::string working_directory;
@@ -52,5 +57,7 @@ private:
 	bool open_pipe(HANDLE&, HANDLE&);
 
 	void read_console(std::function<void(std::string)>);
+
+	std::string read_pipe(HANDLE&);
 
 };

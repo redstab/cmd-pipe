@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "process.h"
+#include "error.h"
 
 console_process::console_process(console_properties input_properties)
 {
@@ -51,9 +52,9 @@ bool console_process::close()
 
 bool console_process::write(std::string input)
 {
-	input += '\n';
 	DWORD bytes_written;
-	return WriteFile(input_write, input.c_str(), input.length() + 1, &bytes_written, nullptr);
+
+	return WriteFile(input_write, input.c_str(), input.length(), &bytes_written, nullptr);
 }
 
 void console_process::read_console(std::function<void(std::string)> output_handler)
@@ -62,29 +63,25 @@ void console_process::read_console(std::function<void(std::string)> output_handl
 	// Capture Command Output
 
 	do {
-
-		unsigned long bytes_available;
-		
-		if (PeekNamedPipe(output_read, nullptr, 0, nullptr, &bytes_available, nullptr)) {
-			if (bytes_available != 0) {
-			
-				DWORD read{};
-
-				std::vector<char> output(bytes_available);
-
-				if (ReadFile(output_read, &output.at(0), bytes_available, &read, nullptr)) {
-
-					if (read == bytes_available) {
-						std::string out(output.begin(), output.end());
-						output_handler(out);
-					}
-
-				}
-			}
-
-		}
-	
+		output_handler(read_pipe(output_read));
 	} while (WaitForSingleObject(input_read, process_properties.timeout) == WAIT_OBJECT_0);
+
+}
+
+std::string console_process::read_pipe(HANDLE& pipe)
+{
+	unsigned long bytes_available;
+
+	std::vector<char> output;
+			
+	if (PeekNamedPipe(pipe, nullptr, 0, nullptr, &bytes_available, nullptr) && bytes_available != 0) {
+		output.resize(bytes_available);
+		if (!ReadFile(pipe, &output.at(0), bytes_available, nullptr, nullptr)) {
+			std::cout << "ReadFile() -> " << windows_error(GetLastError()) << std::endl;
+		}
+	}
+
+	return std::string(output.begin(), output.end());
 
 }
 
