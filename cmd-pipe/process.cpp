@@ -18,12 +18,13 @@ console_process::console_process(console_properties input_properties)
 
 console_process::~console_process()
 {
+	CloseHandle(process_info.hProcess);
+	CloseHandle(process_info.hThread);
 	CloseHandle(input_read);
 	CloseHandle(input_write);
 	CloseHandle(output_read);
 	CloseHandle(output_write);
-	CloseHandle(process_info.hThread);
-	CloseHandle(process_info.hProcess);
+
 }
 
 std::tuple<HANDLE, HANDLE, HANDLE, HANDLE> console_process::handles()
@@ -36,12 +37,10 @@ bool console_process::open()
 	open_pipe(input_read, input_write);
 	open_pipe(output_read, output_write);
 
+	startup_info.hStdOutput = output_write;
+	startup_info.hStdError = output_write;
+	startup_info.hStdInput = input_read;
 
-	if (process_properties.capture_output) {
-		startup_info.hStdOutput = output_write;
-		startup_info.hStdError = output_write;
-		startup_info.hStdInput = input_read;
-	}
 
 	return CreateProcessA(process_properties.console_application.c_str(), 0, 0, 0, process_properties.inherit_handle, process_properties.console_flags, 0, process_properties.working_directory.c_str(), &startup_info, &process_info);
 }
@@ -51,13 +50,13 @@ bool console_process::close()
 	return TerminateProcess(process_info.hProcess, 0);
 }
 
-std::tuple<bool, int> console_process::write(std::string input)
+bool console_process::write(std::string input)
 {
 	DWORD bytes_written;
-	return { WriteFile(input_write, input.c_str(), input.length() + 1, &bytes_written, 0), bytes_written };
+	return WriteFile(input_write, input.c_str(), DWORD(input.length() + 1), &bytes_written, 0);
 }
 
-std::tuple<std::string, buffer_result> console_process::read()
+buffer_result console_process::read(std::queue<std::string>& input)
 {
 	// Check if we can write to input
 	
@@ -70,20 +69,23 @@ std::tuple<std::string, buffer_result> console_process::read()
 			
 			DWORD read;
 
-			char* output = new char[bytes_available] {'\0'};
+			char* output = new char[unsigned long(bytes_available) + (unsigned long(1))] {'\0'};
 			if (ReadFile(output_read, output, bytes_available, &read, 0)) {
 
 				if (read == bytes_available) {
+					output[bytes_available] = '\0';
 					std::string out(output);
 					delete[] output;
-					return {out.substr(0, bytes_available), ((((WaitForSingleObject(input_read, process_properties.timeout) == WAIT_OBJECT_0))) ?  more_data : buffer_empty)};
+					input.push(out);
+					return ((WaitForSingleObject(input_read, process_properties.timeout) == WAIT_OBJECT_0) ?  more_data : buffer_empty);
 				}
 
 			}
+			delete[] output;
 		}
 
 	}
-	return { "", more_data };
+	return more_data;
 	//bool done = false;
 
 	//while (!done) {

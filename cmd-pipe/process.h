@@ -28,8 +28,8 @@ public:
 
 	bool open();
 	bool close();
-	std::tuple<bool, int> write(std::string);
-	std::tuple<std::string, buffer_result> read();
+	bool write(std::string);
+	buffer_result read(std::queue<std::string>&);
 
 private:
 	
