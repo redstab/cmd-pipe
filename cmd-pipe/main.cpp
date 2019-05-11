@@ -28,10 +28,9 @@ int main()
 	cmd.read([&](std::string partial_output) {std::cout << partial_output; });
 
 	// Start interactive prompt
-
 	std::string command;
-	while (std::getline(std::cin, command)) {
-		cmd.execute(command + "\n", [&](std::string partial_output) {std::cout << after_string(partial_output, command); });
+	while (cmd.alive() && std::getline(std::cin, command)) {
+		cmd.execute(command + "\n", [&](std::string partial_output) {std::cout << after_string(partial_output, command + "\n"); });
 	}
 
 }

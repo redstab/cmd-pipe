@@ -33,11 +33,14 @@ public:
 
 	bool open();
 	bool close();
+
 	bool write(std::string);
 	
 	void read(std::function<void(std::string)>);
 
 	void execute(std::string, std::function<void(std::string)>);
+
+	bool alive();
 
 private:
 	

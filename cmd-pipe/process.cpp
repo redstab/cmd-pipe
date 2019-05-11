@@ -64,7 +64,7 @@ void console_process::read_console(std::function<void(std::string)> output_handl
 
 	do {
 		output_handler(read_pipe(output_read));
-	} while (WaitForSingleObject(input_read, process_properties.timeout) == WAIT_OBJECT_0);
+	} while (WaitForSingleObject(input_read, process_properties.timeout) == WAIT_OBJECT_0 && WaitForSingleObject(process_info.hProcess, process_properties.timeout) == WAIT_TIMEOUT);
 
 }
 
@@ -101,6 +101,11 @@ void console_process::execute(std::string command, std::function<void(std::strin
 {
 	write(command);
 	read(output_handler);
+}
+
+bool console_process::alive()
+{
+	return WaitForSingleObject(process_info.hProcess, process_properties.timeout) == WAIT_TIMEOUT;
 }
 
 
