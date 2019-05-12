@@ -1,11 +1,6 @@
 #pragma once
 #include "pch.h"
 
-struct run_once {
-	template <typename T>
-	run_once(T&& f) { f(); }
-};
-
 struct console_properties {
 	std::string console_application;
 	std::string working_directory;
@@ -15,11 +10,6 @@ struct console_properties {
 	DWORD startup_flags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
 	WORD show_console = SW_HIDE;
 	DWORD timeout = 50;
-};
-
-enum buffer_result {
-	buffer_empty,
-	more_data
 };
 
 class console_process
@@ -52,8 +42,6 @@ private:
 	HANDLE input_write;
 	HANDLE output_read;
 	HANDLE output_write;
-
-	bool take_input;
 
 	console_properties process_properties;
 
